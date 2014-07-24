@@ -167,27 +167,35 @@ switch (_action) do {
 		if (_chosen > -1) then {
 			_selected = (uiNamespace getVariable "cti_dialog_ui_servicemenu_list") select _chosen;
 			_selected_content = (uiNamespace getVariable "cti_dialog_ui_servicemenu_content") select _chosen;
-
-			//--- Do we still have something alive in range?
-			if !(isNil '_selected') then {
-				if (alive _selected) then {
-					if (count ([_selected, _selected_content, [CTI_SERVICE_AMMO_DEPOT_RANGE, CTI_SERVICE_AMMO_TRUCK_RANGE], 1] call CTI_UI_Service_RangeStill) > 0) then {
-						_funds = call CTI_CL_FNC_GetPlayerFunds;
-						_price = [_selected, CTI_SERVICE_PRICE_REAMMO, CTI_SERVICE_PRICE_REAMMO_COEF] call CTI_UI_Service_GetPrice;
-						if (_funds >= _price) then {
-							-(_price) call CTI_CL_FNC_ChangePlayerFunds;
-							[_selected, _selected_content, [CTI_SERVICE_AMMO_DEPOT_RANGE, CTI_SERVICE_AMMO_TRUCK_RANGE], [CTI_SERVICE_AMMO_DEPOT_TIME, CTI_SERVICE_AMMO_TRUCK_TIME], 1] spawn CTI_UI_Service_ProcessRearm;
+			
+			// Check rearm not already triggered if air vehicle
+			if ( ( ! ( _selected isKindOf "Air" ) ) || ( _selected call CTI_ALM_ACQUIRE_BUSY_LOCK ) ) then
+			{
+				//--- Do we still have something alive in range?
+				if !(isNil '_selected') then {
+					if (alive _selected) then {
+						if (count ([_selected, _selected_content, [CTI_SERVICE_AMMO_DEPOT_RANGE, CTI_SERVICE_AMMO_TRUCK_RANGE], 1] call CTI_UI_Service_RangeStill) > 0) then {
+							_funds = call CTI_CL_FNC_GetPlayerFunds;
+							_price = [_selected, CTI_SERVICE_PRICE_REAMMO, CTI_SERVICE_PRICE_REAMMO_COEF] call CTI_UI_Service_GetPrice;
+							if (_funds >= _price) then {
+								-(_price) call CTI_CL_FNC_ChangePlayerFunds;
+								[_selected, _selected_content, [CTI_SERVICE_AMMO_DEPOT_RANGE, CTI_SERVICE_AMMO_TRUCK_RANGE], [CTI_SERVICE_AMMO_DEPOT_TIME, CTI_SERVICE_AMMO_TRUCK_TIME], 1] spawn CTI_UI_Service_ProcessRearm;
+							} else {
+								hint parseText "<t size='1.3' color='#2394ef'>Information</t><br /><br />You do not have enough funds to perform this opertion";
+							};
 						} else {
-							hint parseText "<t size='1.3' color='#2394ef'>Information</t><br /><br />You do not have enough funds to perform this opertion";
+							hint parseText "<t size='1.3' color='#2394ef'>Information</t><br /><br />Cannot perform this operation on this unit, check the service range";
 						};
 					} else {
-						hint parseText "<t size='1.3' color='#2394ef'>Information</t><br /><br />Cannot perform this operation on this unit, check the service range";
+						hint parseText "<t size='1.3' color='#2394ef'>Information</t><br /><br />Cannot perform this operation on a destroyed unit";
 					};
 				} else {
 					hint parseText "<t size='1.3' color='#2394ef'>Information</t><br /><br />Cannot perform this operation on a destroyed unit";
 				};
-			} else {
-				hint parseText "<t size='1.3' color='#2394ef'>Information</t><br /><br />Cannot perform this operation on a destroyed unit";
+			}
+			else
+			{
+				hint parseText "<t size='1.3' color='#2394ef'>Information</t><br /><br />Cannot perform this operation on a unit already being re-armed";
 			};
 		};
 	};

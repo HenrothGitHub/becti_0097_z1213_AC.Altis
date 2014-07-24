@@ -97,6 +97,7 @@ call compile preprocessFile "Client\Init\Init_PublicVariables.sqf";
 
 //--- Call the UI Functions
 call compile preprocessFile "Client\Functions\UI\Functions_UI_AIMicromanagementMenu.sqf";
+call compile preprocessFile "Client\Functions\UI\Functions_UI_AircraftLoadoutMenu.sqf";
 call compile preprocessFile "Client\Functions\UI\Functions_UI_ArtilleryMenu.sqf";
 call compile preprocessFile "Client\Functions\UI\Functions_UI_GearMenu.sqf";
 call compile preprocessFile "Client\Functions\UI\Functions_UI_KeyHandlers.sqf";

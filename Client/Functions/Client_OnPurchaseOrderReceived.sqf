@@ -128,6 +128,15 @@ if (_model isKindOf "Man") then {
 } else {
 	_vehicle = [_model, _position, _direction + getDir _factory, CTI_P_SideID, (_veh_infos select 4), true, true] call CTI_CO_FNC_CreateVehicle;
 
+	// Air customisation V2.0 code .. draft .. test
+	if ( _model isKindOf "Air" ) then
+	{
+		_empty_loadout = _vehicle call CTI_AL_GET_STANDARD_EMPTY_LOADOUT;
+		_vehicle setVariable [ "cti_custom_aircraft_loadout_v2", (_empty_loadout) ];
+		_vehicle setVariable [ "cti_custom_aircraft_loadout_v2_cost", 0 ];
+		_vehicle setVariable [ "cti_custom_aircraft_loadout_v2_arming_busy", false ]; // Semaphore
+	};
+	
 	if (_veh_infos select 0 || _veh_infos select 1 || _veh_infos select 2 || _veh_infos select 3) then { //--- Not empty.
 		_crew = switch (true) do { case (_model isKindOf "Tank"): {"Crew"}; case (_model isKindOf "Air"): {"Pilot"}; default {"Soldier"}};
 		_crew = missionNamespace getVariable format["CTI_%1_%2", CTI_P_SideJoined, _crew];
@@ -164,8 +173,8 @@ if (_model isKindOf "Man") then {
 
 	player reveal _vehicle;
 
-	//--- Authorize the air loadout depending on the parameters set
-	if (_vehicle isKindOf "Air") then {[_vehicle, CTI_P_SideJoined] call CTI_CO_FNC_SanitizeAircraft};
+	// New air vehicles come with no loadout
+	if (_vehicle isKindOf "Air") then { _vehicle call CTI_ALM_PURGE_ALL_WEAPONS };
 
 	//--- Sanitize the artillery loadout, mines may lag the server for instance
 	if (CTI_ARTILLERY_FILTER == 1) then {if (_model in (missionNamespace getVariable ["CTI_ARTILLERY", []])) then {(_vehicle) call CTI_CO_FNC_SanitizeArtillery}};

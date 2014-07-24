@@ -27,7 +27,7 @@
   # EXAMPLE #
     [vehicle player, CTI_P_SideJoined] call CTI_CO_FNC_SanitizeAircraft;
 	  -> Sanitize the player's vehicle depending on the upgrade levels/parameters
-*/
+
 
 private ["_side", "_vehicle", "_upgrades"];
 
@@ -56,3 +56,4 @@ switch (missionNamespace getVariable "CTI_VEHICLES_AIR_CM") do {
 	case 0: {_vehicle call CTI_CO_FNC_SanitizeAircraftCM};//--- Remove
 	case 1: {if (_upgrades select CTI_UPGRADE_AIR_CM < 1) then {_vehicle call CTI_CO_FNC_SanitizeAircraftCM}};//--- Remove if not yet ugpraded
 };
+*/

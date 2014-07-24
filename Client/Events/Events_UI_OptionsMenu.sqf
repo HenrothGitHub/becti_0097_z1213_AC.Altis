@@ -52,8 +52,9 @@ switch (_action) do {
 			} forEach (player nearEntities[["Car","Motorcycle","Ship","Tank"],10]);
 		};
 	};
-	case "onMusicPressed": { //--- Play some music
-		player sidechat "lalalalaaaaaaaaaa lalalalaaaaaaaa laaaa";
+	case "onACPressed": {
+		closeDialog 0;
+		createDialog "CTI_RscAircraftLoadoutMenu";
 	};
 	case "onServicePressed": {
 		closeDialog 0;

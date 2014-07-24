@@ -108,6 +108,8 @@ call compile preprocessFileLineNumbers "Common\Config\Towns\Towns_East.sqf";
 (west) call compile preprocessFileLineNumbers "Common\Config\Squads\Squad_West.sqf";
 (east) call compile preprocessFileLineNumbers "Common\Config\Squads\Squad_East.sqf";
 
+// Constants for air vehicle loadouts
+call compile preprocessFileLineNumbers "Common\Config\Units\Set_WeaponLoadouts.sqf";
 //--- Network communication handler
 "CTI_NetCom" addPublicVariableEventHandler {(_this select 1) Spawn CTI_CO_FNC_OnPVFReceived};
 

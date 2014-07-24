@@ -125,6 +125,11 @@ CTI_UI_Service_ProcessRearm = {
 	} else {
 		hint parseText format ["<t size='1.3' color='#2394ef'>Information</t><br /><br />Couldn't finish the rearming of a <t color='#ccffaf'>%1</t>...", _label];
 	};
+	if ( _unit isKindOf "Air" ) then
+	{
+		_unit call CTI_ALM_RELEASE_BUSY_LOCK; // Unlock vehicle
+	};
+	
 };
 
 CTI_UI_Service_ProcessRefuel = {

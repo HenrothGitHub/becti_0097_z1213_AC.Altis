@@ -4,6 +4,7 @@
 #define CT_EDIT 				2
 #define CT_COMBO 				4
 #define CT_LISTBOX				5
+#define CT_CHECKBOXES       7
 #define CT_PROGRESS				8
 #define CT_ACTIVETEXT			11
 #define CT_STRUCTURED_TEXT		13
@@ -14,6 +15,37 @@
 #define CT_LISTNBOX				102
 
 #include "Styles.hpp"
+
+class RscCheckbox 
+{
+  idc = 200;
+  type = CT_CHECKBOXES; // defined contant (7)
+  style = ST_CENTER; // defined constat (0)
+  
+  x = 0.1;
+  y = 0.18;
+  w = 0.15;
+  h = 0.15;
+  
+  colorText[] = {1, 0, 0, 1};
+  color[] = {0, 1, 0, 1};  //seems nothing to change, but define to avaoid errors
+  colorTextSelect[] = {0, 1, 0.4, 1};
+  colorSelect[] = {0, 0, 0, 1};
+  colorTextDisable[] = {0.4, 0.4, 0.4, 1};
+  colorDisable[] = {0.4, 0.4, 0.4, 1};
+  colorBackground[] = { 0, 0, 0, 1};
+  colorSelectedBg[] = { 0, 0, 0, 1};
+  font = "PuristaMedium";
+  sizeEx = 0.06;
+  
+  rows = 1;
+  columns = 1;
+  strings[] = {" "};
+  checked_strings[] = {"X"};
+  
+  //Simple UI event handler to show response on clicks
+  onCheckBoxesSelChanged = "hint format[""Checkbox change:\n%1\nEntry#: %2\nNewState: %3"",(_this select 0),(_this select 1),(_this select 2)];";
+};
 
 //--- Text / Picture
 class RscText {
