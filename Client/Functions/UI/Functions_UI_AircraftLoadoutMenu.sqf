@@ -40,6 +40,71 @@ CTI_ALM_WEAPON_LIST_SET_CURSOR =
 	} forEach ( CTI_AL_ALL_WEAPON_COMBOBOX_DETAILS );
 };
 
+CTI_ALM_UPDATE_MAGAZINE_OPTIONS = 
+{
+	_relative_idc = _this;
+	
+	_vehicle = call CTI_GET_SELECTED_VEHICLE;
+	
+	// Grab vehicle loadout choices
+	_loadout_selections = _vehicle getVariable "cti_custom_aircraft_loadout_v2";
+	
+	// Determine vehicle type
+	_typeOfValue = typeOf _vehicle;
+	
+	// Grab the weapon configurations available for this vehicle
+	_gun_configs = missionNamespace getVariable ( format [ "CTI_LOADOUT_%1_MNT_OPTIONS" , _typeOfValue ] );
+	
+	//Loadout chosen index
+	_loadout_index = _loadout_selections select 0;
+	
+	// Mountpoint options for chosen loadout
+	_all_mountpoint_optionsZ = _gun_configs select _loadout_index;
+	
+	//Get options for mountpoint
+	_a_mountpoint_options = _all_mountpoint_optionsZ select _relative_idc;
+	
+	// Extract chosen mountpoint options
+	_mount_loadout = _loadout_selections select ( _relative_idc + 1 );
+	_mount_loadout_weapon_index = _mount_loadout select 0;
+	_mount_loadout_magazine_index = _mount_loadout select 1;
+	_mount_loadout_enabled  = _mount_loadout select 2;
+	
+	//Get chosen weapon and magazine classnames 
+	_weapon_classname = _a_mountpoint_options select _mount_loadout_weapon_index;
+	_selected_magazine_config = ( _a_mountpoint_options select ( _mount_loadout_weapon_index + 1 ) );
+	
+	// Clear out configuration details for the magazine related to this mount point
+	lbClear ((uiNamespace getVariable "cti_dialog_ui_aircraftloadoutmenu") displayCtrl ( 39040 + ( _relative_idc ) ) );
+	
+	// Loop through each of the magazine options for this weapon
+	for [ {_index_magazine = 0},{ _index_magazine < ( count ( _selected_magazine_config ))},{ _index_magazine = _index_magazine + 1}] do 
+	{
+		
+		// Extract the magazine option ( classname , cost );
+		_magazine_options = _selected_magazine_config select _index_magazine;
+		_magazine_classname = _magazine_options select 0;
+		_magazine_cost = _magazine_options select 1;
+		
+		// Determine magazine name to display
+		_magazine_name = getText ( configFile >> "CfgMagazines" >> _magazine_classname >> "displayName" );
+		if ( _magazine_name == "" ) then { _magazine_name = getText ( configFile >> "CfgMagazines" >> _magazine_classname >> "displayNameShort" ); };
+		if ( _magazine_name == "" ) then { _magazine_name = "Rounds" };
+		
+		// Determine count to display
+		_magazine_count = getNumber  ( configFile >> "CfgMagazines" >> _magazine_classname >> "count" );
+		
+		// Update magazine list of options
+		((uiNamespace getVariable "cti_dialog_ui_aircraftloadoutmenu") displayCtrl ( 39040 + _relative_idc )) lbAdd ( format[ "%1 X %2" , _magazine_count , _magazine_name ] );
+	};
+	
+	// Default select first element
+	((uiNamespace getVariable "cti_dialog_ui_aircraftloadoutmenu") displayCtrl ( 39040 + _relative_idc )) lbSetCurSel 0;
+
+
+};
+
+
 CTI_ALM_UPDATE_CURRENT_LOADOUT =
 {
 	_vehicle = _this;
@@ -59,7 +124,7 @@ CTI_ALM_UPDATE_CURRENT_LOADOUT =
 	// Lookup weapon details for this vehicle
 	_loadout_options = missionNamespace getVariable ( format [ "CTI_LOADOUT_%1_MNT_OPTIONS" , _typeOfValue ] );
 	
-	player sidechat format [ "TYPEOF %1" , _typeOfValue ];
+	//player sidechat format [ "TYPEOF %1" , _typeOfValue ];
 	
 	_text_to_display = "<t size='1' color='#0066ff'>CURRENT</t><br />";
 	
@@ -93,7 +158,7 @@ CTI_ALM_UPDATE_CURRENT_LOADOUT =
 		
 		_is_mounted = _mount_details select 2;
 		
-		player sidechat format [ "MNT %1 => %2 => %3 => %4" , _mount_index , _weapon_displayname , _magazine_displayname , _is_mounted ];
+		// player sidechat format [ "MNT %1 => %2 => %3 => %4" , _mount_index , _weapon_displayname , _magazine_displayname , _is_mounted ];
 		
 		_text_to_display = format [ "%1<t size='0.85' color='#6699ff'>" , _text_to_display ];
 		if ( _is_mounted ) then
@@ -344,7 +409,7 @@ CTI_ALM_UPDATE_LOADOUT_OPTIONS =
 	
 	
 	//_selected getVariable "cti_custom_aircraft_loadout_v2";
-	player globalChat format [ "NEW COUNT: %1", (count (_selected getVariable "cti_custom_aircraft_loadout_v2")) ];
+	// player sidechatChat format [ "NEW COUNT: %1", (count (_selected getVariable "cti_custom_aircraft_loadout_v2")) ];
 	
 };
 
@@ -437,6 +502,8 @@ CTI_GET_SELECTED_MAGAZINE_NAME_ROW_N =
 {
 	_n = _this;
 	
+	_chosen_magazine_classname = "";
+	
 	// Get current selected vehicle
 	_selected_vehicle = call CTI_GET_SELECTED_VEHICLE;
 	
@@ -452,17 +519,27 @@ CTI_GET_SELECTED_MAGAZINE_NAME_ROW_N =
 	// Get the selected row from magazine combobox
 	_magazine_selected_row = ( _mount_row call CTI_GET_SELECTED_MAGAZINE_ROW_N );
 	
-	_chosen_loadout = _vehicle_loadout_options select ( ( _loadout_selected_row * 2 ) + 1 );
-	
-	_chosen_mount = _chosen_loadout select _n;
-	
-	_chosen_weapon_magazine_options = _chosen_mount select ( ( _weapon_selected_row * 2 ) + 1 ) ;
-	
-	_chosen_magazine_options = _chosen_weapon_magazine_options select _magazine_selected_row;
-	
-	_chosen_magazine_classname = _chosen_magazine_options select 0;
+	if ( ( ( _loadout_selected_row * 2 ) + 1 ) < count ( _vehicle_loadout_options ) ) then
+	{
+		_chosen_loadout = _vehicle_loadout_options select ( ( _loadout_selected_row * 2 ) + 1 );
+		
+		if ( _n < count ( _chosen_loadout ) ) then
+		{
+			_chosen_mount = _chosen_loadout select _n;
+			
+			if ( (  ( _weapon_selected_row * 2 ) + 1 ) < count ( _chosen_mount ) ) then
+			{
+				_chosen_weapon_magazine_options = _chosen_mount select ( ( _weapon_selected_row * 2 ) + 1 ) ;
+				
+				_chosen_magazine_options = _chosen_weapon_magazine_options select _magazine_selected_row;
+				
+				_chosen_magazine_classname = _chosen_magazine_options select 0;
+			};
+		};
+	};	
 	
 	_chosen_magazine_classname
+	
 };
 
 
@@ -604,17 +681,22 @@ CTI_ALM_UPDATE_TEXT_COST_ROW_N =
 	
 	_chosen_loadout = _vehicle_loadout_options select ( ( _loadout_selected_row * 2 ) + 1 );
 	
-	_chosen_mount = _chosen_loadout select _n;
+	_chosen_magazine_cost = 0;
 	
-	_chosen_weapon_classname = _chosen_mount select ( _weapon_selected_row * 2 ) ;
-	
-	_chosen_weapon_magazine_options = _chosen_mount select ( ( _weapon_selected_row * 2 ) + 1 ) ;
-	
-	_chosen_magazine_options = _chosen_weapon_magazine_options select _magazine_selected_row;
-	
-	_chosen_magazine_classname = _chosen_magazine_options select 0;
-	
-	_chosen_magazine_cost = _chosen_magazine_options select 1;
+	if ( _n < count ( _chosen_loadout ) ) then
+	{
+		_chosen_mount = _chosen_loadout select _n;
+		
+		_chosen_weapon_classname = _chosen_mount select ( _weapon_selected_row * 2 ) ;
+		
+		_chosen_weapon_magazine_options = _chosen_mount select ( ( _weapon_selected_row * 2 ) + 1 ) ;
+		
+		_chosen_magazine_options = _chosen_weapon_magazine_options select _magazine_selected_row;
+		
+		_chosen_magazine_classname = _chosen_magazine_options select 0;
+		
+		_chosen_magazine_cost = _chosen_magazine_options select 1;
+	};
 	
 	// Update cost of mount row
 	[ _chosen_magazine_cost , _mount_row ] call CTI_SET_TEXT_COST_ROW_N;
@@ -735,16 +817,31 @@ CTI_ALM_PURGE_ALL_WEAPONS =
 			
 			//Get chosen weapon and magazine classnames 
 			_weapon_classname = _a_mountpoint_options select _mount_loadout_weapon_index;
+			
+			if ( count ( _magazine_options ) > 2 ) then
+			{
+				_vehicle removeMagazineTurret [ _magazine_classname , _magazine_options select 2 ];
+			}
+			else
+			{
+				_vehicle removeMagazineGlobal _magazine_classname;
+				_vehicle removeWeaponGlobal _weapon_classname;
+			};
+			
+			
 			_weapons_to_add = _weapons_to_add + [ _weapon_classname ];
-			_magazines_to_add = _magazines_to_add + [ _magazine_classname ];
+			//_magazines_to_add = _magazines_to_add + [ _magazine_classname ];
+			
+			
+			
 		};
 		
 		
 		// Remove all weapons and magazines
-		{ _vehicle removeWeaponGlobal _x } foreach ( _weapons_to_add );
+		//{ _vehicle removeWeaponGlobal _x } foreach ( _weapons_to_add );
 		
 		// Remove all magazines
-		{ _vehicle removeMagazineGlobal _x } foreach ( _magazines_to_add );
+		//{ _vehicle removeMagazineGlobal _x } foreach ( _magazines_to_add );
 		
 	
 	};
@@ -832,18 +929,30 @@ CTI_ALM_REFRESH_LOADOUT_ON_MOUNTED =
 		_magazine_cost = _magazine_options select 1;
 		
 		// Always add the magazine
-		_vehicle addMagazineGlobal _magazine_classname;
+		// _vehicle addMagazineGlobal _magazine_classname;
 		
-		if not ( _mount_loadout_enabled ) then
+		if ( ( count ( _magazine_options ) > 2 ) && ( _mount_loadout_enabled ) ) then
 		{
-			_vehicle addWeaponGlobal _weapon_classname;
-			_vehicle setAmmo [ _weapon_classname , 0 ];
-			_vehicle removeWeaponGlobal _weapon_classname;
+			_vehicle addMagazineTurret [ _magazine_classname , _magazine_options select 2 ];
 		}
 		else
 		{
-			_vehicle addWeaponGlobal _weapon_classname;
+			_vehicle addMagazineGlobal _magazine_classname;
+			
+			if not ( _mount_loadout_enabled ) then
+			{
+				_vehicle addWeaponGlobal _weapon_classname;
+				_vehicle setAmmo [ _weapon_classname , 0 ];
+				_vehicle removeWeaponGlobal _weapon_classname;
+			}
+			else
+			{
+				_vehicle addWeaponGlobal _weapon_classname;
+			};
+			
 		};
+		
+		
 	};
 	
 };

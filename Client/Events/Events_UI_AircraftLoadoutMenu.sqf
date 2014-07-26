@@ -60,38 +60,72 @@ switch (_action) do {
 		_relative_idc = _this select 2;
 		_current_idc = _control_select select 0;
 		_changeto = _control_select select 1;
-		player globalchat format [ "onWeaponListLBSelChanged _relative_idc  %1" , _relative_idc ];
-		player globalchat format [ "onWeaponListLBSelChanged _changeto %1" , _changeto ];
-		_selected_weapon_config = ((uiNamespace getVariable "cti_dialog_ui_aircraftloadoutmenu_selected_weapon_options") select _relative_idc);
-		_selected_magazine_config = _selected_weapon_config select _changeto;
 		
-		// Clear out configuration details for the magazine related to this mount point
-		lbClear ((uiNamespace getVariable "cti_dialog_ui_aircraftloadoutmenu") displayCtrl ( 39040 + ( _relative_idc ) ) );
+		_vehicle = call CTI_GET_SELECTED_VEHICLE;
 		
-		// Loop through each of the magazine options for this weapon
-		for [ {_index_magazine = 0},{ _index_magazine < ( count ( _selected_magazine_config ))},{ _index_magazine = _index_magazine + 1}] do 
+		// Grab vehicle loadout choices
+		_loadout_selections = _vehicle getVariable "cti_custom_aircraft_loadout_v2";
+		
+		// Determine vehicle type
+		_typeOfValue = typeOf _vehicle;
+		
+		// Grab the weapon configurations available for this vehicle
+		_gun_configs = missionNamespace getVariable ( format [ "CTI_LOADOUT_%1_MNT_OPTIONS" , _typeOfValue ] );
+		
+		//Loadout chosen index
+		_loadout_index = ( ( ( call CTI_GET_SELECTED_LOADOUT_INDEX ) *2 ) + 1 );
+		
+		// Mountpoint options for chosen loadout
+		_all_mountpoint_optionsZ = _gun_configs select _loadout_index;
+		
+		//Get options for mountpoint
+		if ( _relative_idc < ( count ( _all_mountpoint_optionsZ ) ) ) then
 		{
 			
-			// Extract the magazine option ( classname , cost );
-			_magazine_options = _selected_magazine_config select _index_magazine;
-			_magazine_classname = _magazine_options select 0;
-			_magazine_cost = _magazine_options select 1;
+			_a_mountpoint_options = _all_mountpoint_optionsZ select _relative_idc;
 			
-			// Determine magazine name to display
-			_magazine_name = getText ( configFile >> "CfgMagazines" >> _magazine_classname >> "displayName" );
-			if ( _magazine_name == "" ) then { _magazine_name = getText ( configFile >> "CfgMagazines" >> _magazine_classname >> "displayNameShort" ); };
-			if ( _magazine_name == "" ) then { _magazine_name = "Rounds" };
+			// Extract chosen mountpoint options
+			_mount_loadout = _loadout_selections select ( _relative_idc + 1 );
+			_mount_loadout_weapon_index = _mount_loadout select 0;
+			_mount_loadout_magazine_index = _mount_loadout select 1;
+			_mount_loadout_enabled  = _mount_loadout select 2;
 			
-			// Determine count to display
-			_magazine_count = getNumber  ( configFile >> "CfgMagazines" >> _magazine_classname >> "count" );
+			//Get chosen weapon and magazine classnames 
+			_weapon_classname = _a_mountpoint_options select _mount_loadout_weapon_index;
+			_selected_magazine_config = ( _a_mountpoint_options select ( _mount_loadout_weapon_index + 1 ) );
 			
-			// Update magazine list of options
-			((uiNamespace getVariable "cti_dialog_ui_aircraftloadoutmenu") displayCtrl ( 39040 + _relative_idc )) lbAdd ( format[ "%1 X %2" , _magazine_count , _magazine_name ] );
+			// Clear out configuration details for the magazine related to this mount point
+			lbClear ((uiNamespace getVariable "cti_dialog_ui_aircraftloadoutmenu") displayCtrl ( 39040 + ( _relative_idc ) ) );
+			
+			// Loop through each of the magazine options for this weapon
+			for [ {_index_magazine = 0},{ _index_magazine < ( count ( _selected_magazine_config ))},{ _index_magazine = _index_magazine + 1}] do 
+			{
+				
+				
+				player sidechat "IN";
+				
+				// Extract the magazine option ( classname , cost );
+				_magazine_options = _selected_magazine_config select _index_magazine;
+				_magazine_classname = _magazine_options select 0;
+				_magazine_cost = _magazine_options select 1;
+				
+				// Determine magazine name to display
+				_magazine_name = getText ( configFile >> "CfgMagazines" >> _magazine_classname >> "displayName" );
+				if ( _magazine_name == "" ) then { _magazine_name = getText ( configFile >> "CfgMagazines" >> _magazine_classname >> "displayNameShort" ); };
+				if ( _magazine_name == "" ) then { _magazine_name = "Rounds" };
+				
+				// Determine count to display
+				_magazine_count = getNumber  ( configFile >> "CfgMagazines" >> _magazine_classname >> "count" );
+				
+				// Update magazine list of options
+				((uiNamespace getVariable "cti_dialog_ui_aircraftloadoutmenu") displayCtrl ( 39040 + _relative_idc )) lbAdd ( format[ "%1 X %2" , _magazine_count , _magazine_name ] );
+			};
+			
+			// Default select first element
+			((uiNamespace getVariable "cti_dialog_ui_aircraftloadoutmenu") displayCtrl ( 39040 + _relative_idc )) lbSetCurSel 0;
 		};
 		
-		// Default select first element
-		((uiNamespace getVariable "cti_dialog_ui_aircraftloadoutmenu") displayCtrl ( 39040 + _relative_idc )) lbSetCurSel 0;
-		
+	
 	};
 	case "onLoadoutListLBSelChanged": 
 	{
