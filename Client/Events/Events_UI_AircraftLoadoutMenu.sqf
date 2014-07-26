@@ -102,7 +102,6 @@ switch (_action) do {
 			{
 				
 				
-				player sidechat "IN";
 				
 				// Extract the magazine option ( classname , cost );
 				_magazine_options = _selected_magazine_config select _index_magazine;
@@ -181,21 +180,32 @@ switch (_action) do {
 			_selected_cost_total = call CTI_ALM_CALCULATE_CHOSEN_LOADOUT_COST;
 			_vehicle_loadout_value = _selected_vehicle getVariable "cti_custom_aircraft_loadout_v2_cost";
 			
+			// Get current funds
+			_funds = call CTI_CL_FNC_GetPlayerFunds;
+			
 			// Subtract from players funds
-			( _vehicle_loadout_value - _selected_cost_total ) call CTI_CL_FNC_ChangePlayerFunds;
+			_total_cost_difference = ( _vehicle_loadout_value - _selected_cost_total );
 			
-			//Remove all existing weapons
-			_wait = _selected_vehicle call CTI_ALM_PURGE_ALL_WEAPONS;
-			
-			// Accept vehicle loadout
-			_wait = _selected_vehicle call CTI_ALM_ACCEPT_VEHICLE_LOADOUT;
-			
-			// Save the selected cost onto the vehicle
-			_selected_vehicle setVariable [ "cti_custom_aircraft_loadout_v2_cost" , _selected_cost_total ];
-			
-			// Reresh vehicle loadout
-			_wait = _selected_vehicle call CTI_ALM_UPDATE_CURRENT_LOADOUT;
-			
+			if ( _funds >= _total_cost_difference ) then
+			{
+				( _total_cost_difference ) call CTI_CL_FNC_ChangePlayerFunds;
+				
+				//Remove all existing weapons
+				_wait = _selected_vehicle call CTI_ALM_PURGE_ALL_WEAPONS;
+				
+				// Accept vehicle loadout
+				_wait = _selected_vehicle call CTI_ALM_ACCEPT_VEHICLE_LOADOUT;
+				
+				// Save the selected cost onto the vehicle
+				_selected_vehicle setVariable [ "cti_custom_aircraft_loadout_v2_cost" , _selected_cost_total ];
+				
+				// Reresh vehicle loadout
+				_wait = _selected_vehicle call CTI_ALM_UPDATE_CURRENT_LOADOUT;
+			}
+			else
+			{
+				hint parseText "<t size='1.3' color='#2394ef'>Information</t><br /><br />Cannot perform this operation. Insufficient funds.";
+			};
 		}
 		else
 		{
