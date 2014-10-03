@@ -2,6 +2,7 @@ private ["_action"];
 _action = _this select 0;
 
 switch (_action) do {
+	
 	case "onLoad": 
 	{
 		call CTI_ALM_CLEAR_ALL_PREVIOUS_CHOICES;
@@ -16,6 +17,10 @@ switch (_action) do {
 	//Select a weapon loadout options
 	case "onAmmoListLBSelChanged": 
 	{
+		if ( CTI_DEBUG ) then
+		{
+			systemChat format [ "Triggering onAmmoListLBSelChanged()" ];
+		};
 		// Get relative mount row
 		_mount_row = _this select 2;
 		
@@ -34,6 +39,11 @@ switch (_action) do {
 	};
 	case "onWeaponMountPressed": 
 	{
+		if ( CTI_DEBUG ) then
+		{
+			systemChat format [ "Triggering onWeaponMountPressed()" ];
+		};
+		
 		_idc = _this select 1;
 		_control = ((uiNamespace getVariable "cti_dialog_ui_aircraftloadoutmenu") displayCtrl ( _idc ));
 		if ( ( ctrlText _control ) == "NO" ) then
@@ -56,6 +66,13 @@ switch (_action) do {
 	};
 	case "onWeaponListLBSelChanged": 
 	{
+		
+		DEBUG_onWeaponListLBSelChanged = true;
+		
+		if ( DEBUG_onWeaponListLBSelChanged ) then
+		{
+			systemChat format [ "Triggering onWeaponListLBSelChanged()" ];
+		};
 		_control_select = _this select 1;
 		_relative_idc = _this select 2;
 		_current_idc = _control_select select 0;
@@ -75,14 +92,23 @@ switch (_action) do {
 		//Loadout chosen index
 		_loadout_index = ( ( ( call CTI_GET_SELECTED_LOADOUT_INDEX ) *2 ) + 1 );
 		
+		if ( DEBUG_onWeaponListLBSelChanged ) then
+		{
+			systemChat format [ "_loadout_index = %1" , _loadout_index  ];
+		};
+		
 		// Mountpoint options for chosen loadout
-		_all_mountpoint_optionsZ = _gun_configs select _loadout_index;
+		_all_mountpoint_options = _gun_configs select _loadout_index;
 		
 		//Get options for mountpoint
-		if ( _relative_idc < ( count ( _all_mountpoint_optionsZ ) ) ) then
+		if ( _relative_idc < ( count ( _all_mountpoint_options ) ) ) then
 		{
+			if ( DEBUG_onWeaponListLBSelChanged ) then
+			{
+				systemChat format [ "_relative_idc = %1" , _relative_idc  ];
+			};
 			
-			_a_mountpoint_options = _all_mountpoint_optionsZ select _relative_idc;
+			_a_mountpoint_options = _all_mountpoint_options select _relative_idc;
 			
 			// Extract chosen mountpoint options
 			_mount_loadout = _loadout_selections select ( _relative_idc + 1 );
@@ -90,9 +116,24 @@ switch (_action) do {
 			_mount_loadout_magazine_index = _mount_loadout select 1;
 			_mount_loadout_enabled  = _mount_loadout select 2;
 			
+			// if ( DEBUG_onWeaponListLBSelChanged ) then
+			// {
+				// systemChat format [ "_mount_loadout_weapon_index = %1" , _mount_loadout_weapon_index  ];
+				// systemChat format [ "_mount_loadout_magazine_index = %1" , _mount_loadout_magazine_index  ];
+				// systemChat format [ "_mount_loadout_enabled = %1" , _mount_loadout_enabled  ];
+			// };
+			
 			//Get chosen weapon and magazine classnames 
-			_weapon_classname = _a_mountpoint_options select _mount_loadout_weapon_index;
-			_selected_magazine_config = ( _a_mountpoint_options select ( _mount_loadout_weapon_index + 1 ) );
+			// _weapon_classname = _a_mountpoint_options select _mount_loadout_weapon_index;
+			// _selected_magazine_config = ( _a_mountpoint_options select ( _mount_loadout_weapon_index + 1 ) );
+			
+			_weapon_classname = _a_mountpoint_options select ( _changeto * 2 );
+			_selected_magazine_config = ( _a_mountpoint_options select ( ( _changeto * 2 ) + 1 ) );
+			
+			if ( DEBUG_onWeaponListLBSelChanged ) then
+			{
+				systemChat format [ "_weapon_classname = %1" , _weapon_classname  ];
+			};
 			
 			// Clear out configuration details for the magazine related to this mount point
 			lbClear ((uiNamespace getVariable "cti_dialog_ui_aircraftloadoutmenu") displayCtrl ( 39040 + ( _relative_idc ) ) );
@@ -100,8 +141,6 @@ switch (_action) do {
 			// Loop through each of the magazine options for this weapon
 			for [ {_index_magazine = 0},{ _index_magazine < ( count ( _selected_magazine_config ))},{ _index_magazine = _index_magazine + 1}] do 
 			{
-				
-				
 				
 				// Extract the magazine option ( classname , cost );
 				_magazine_options = _selected_magazine_config select _index_magazine;
@@ -122,12 +161,26 @@ switch (_action) do {
 			
 			// Default select first element
 			((uiNamespace getVariable "cti_dialog_ui_aircraftloadoutmenu") displayCtrl ( 39040 + _relative_idc )) lbSetCurSel 0;
+		}
+		else
+		{
+			if ( DEBUG_onWeaponListLBSelChanged ) then
+			{
+				systemChat format [ "_relative_idc = %1" , _relative_idc  ];
+				systemChat format [ "count ( _all_mountpoint_options ) = %1" , count ( _all_mountpoint_options )  ];
+				systemChat format [ "_relative_idc >=( count ( _all_mountpoint_options ) )" ];
+			};
 		};
 		
 	
 	};
 	case "onLoadoutListLBSelChanged": 
 	{
+		if ( CTI_DEBUG ) then
+		{
+			systemChat format [ "Triggering onLoadoutListLBSelChanged()" ];
+		};
+		
 		call CTI_ALM_HIDE_ALL_MOUNTPOINTS;
 		
 		call CTI_ALM_UPDATE_WEAPON_OPTIONS;
@@ -137,9 +190,18 @@ switch (_action) do {
 		call CTI_ALM_SET_ALL_MAGAZINES_TO_FIRST_CHOICE;
 		
 		call CTI_ALM_UNSET_ALL_MOUNT_BUTTONS;
+		
+		if ( CTI_DEBUG ) then
+		{
+			systemChat format [ "Exiting onLoadoutListLBSelChanged()" ];
+		};
 	};
 	case "onVehicleListLBSelChanged": 
 	{
+		if ( CTI_DEBUG  ) then
+		{
+			systemChat format [ "Triggering onVehicleListLBSelChanged()" ];
+		};
 		// Hide all visible mount points
 		call CTI_ALM_HIDE_ALL_MOUNTPOINTS;
 		
@@ -168,6 +230,10 @@ switch (_action) do {
 	};
 	case "onAcceptPressed": 
 	{
+		if ( CTI_DEBUG ) then
+		{
+			systemChat format [ "Triggering onAcceptPressed()" ];
+		};
 		// Get current selected vehicle
 		_selected_vehicle = call CTI_GET_SELECTED_VEHICLE;
 		
